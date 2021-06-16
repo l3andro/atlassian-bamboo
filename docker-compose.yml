@@ -1,0 +1,34 @@
+version: "3.8"
+services: 
+    bamboo-server:
+        container_name: bamboo-server
+        build: ./
+        networks:
+          - bamboo
+        restart:
+          on-failure
+        ports:
+            - 54663:54663
+            - 8085:8085
+        volumes:
+            - bambooVolume:/var/atlassian/application-data/bamboo
+            - /var/run/docker.sock:/var/run/docker.sock # Bind mount docker.sock for Docker in Docker
+        init: true # Recommended by Atlassian to properly reap zombie processes
+    bamboo-agent:
+        container_name: bamboo-agent
+        image: atlassian/bamboo-agent-base
+        networks:
+          - bamboo
+        restart:
+          on-failure
+        command: http://bamboo-server:8085
+        volumes:
+            - bambooAgentVolume:/var/atlassian/application-data/bamboo
+        init: true # Recommended by Atlassian to properly reap zombie processes
+networks:
+  bamboo: {}
+volumes:
+  bambooVolume:
+      external: false
+  bambooAgentVolume:
+    external: false
